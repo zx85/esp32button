@@ -7,6 +7,9 @@
 #include <WiFiManager.h>       // https://github.com/tzapu/WiFiManager   
 #include <WiFiClient.h>
 
+
+// TODO: Change from SPIFFS to LittleFS
+
 // Variable to store the HTTP request
 String header;
 
