@@ -1,10 +1,11 @@
 #include <FS.h>          // this needs to be first, or it all crashes and burns...
-#include <ArduinoJson.h> // https://github.com/bblanchon/ArduinoJson
+#include <ArduinoJson.h> // https://github.com/bblanchon/ArduinoJson - needs to be v5 not v6
 #include <ESP8266WiFi.h>
 #include <DNSServer.h>
 #include <ESP8266WebServer.h>
 #include <ESP8266HTTPClient.h>
-#include <WiFiManager.h>         // https://github.com/tzapu/WiFiManager
+#include <WiFiManager.h>       // https://github.com/tzapu/WiFiManager   
+#include <WiFiClient.h>
 
 // Variable to store the HTTP request
 String header;
@@ -175,10 +176,12 @@ void setup() {
 void loop(){
   String serverPath = "http://"+String(api_url)+"/get/"+String(switch_id);
 //  Serial.println(serverPath);
+  WiFiClient wifiClient;
   HTTPClient http;
-  http.begin(serverPath.c_str());
+  http.begin(wifiClient,serverPath.c_str());
   int httpResponseCode = http.GET();
   if (httpResponseCode>0) {
+   String payload = http.getString();
    Serial.print("HTTP Response code: ");
    Serial.println(httpResponseCode);
    Serial.println(payload);
