@@ -8,7 +8,10 @@
 #include <WiFiClient.h>
 
 
-// TODO: Change from SPIFFS to LittleFS
+// TODO:
+// Sort out deep sleep
+// Test button push and toggle
+// One more go at https ..?
 
 // Variable to store the HTTP request
 String header;
