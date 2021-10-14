@@ -9,7 +9,9 @@
 
 
 // TODO:
+// break this out into separate functions?
 // Sort out deep sleep
+// https://www.youtube.com/watch?v=n_A_8Y4xNx8
 // Test button push and toggle
 // One more go at https ..?
 
