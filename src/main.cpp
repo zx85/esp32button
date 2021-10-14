@@ -1,4 +1,4 @@
-#include <FS.h>          // this needs to be first, or it all crashes and burns...
+#include <LittleFS.h>
 #include <ArduinoJson.h> // https://github.com/bblanchon/ArduinoJson - needs to be v5 not v6
 #include <ESP8266WiFi.h>
 #include <DNSServer.h>
@@ -16,7 +16,7 @@ String header;
 // Auxiliar variables to store the current output state
 
 // New stuff to send things to the right server
-char api_url[40] = "none";
+char api_url[100] = "https://home.mus-ic.co.uk/alexa/getSwitchToggle?secret=9896a166688128a03976f8032427b8e4&switch=1";
 char switch_id[2] = "0";
 //flag for saving data
 bool shouldSaveConfig = false;
@@ -56,12 +56,12 @@ void setupSpiffs(){
   //read configuration from FS json
   Serial.println("mounting FS...");
 
-  if (SPIFFS.begin()) {
+  if (LittleFS.begin()) {
     Serial.println("mounted file system");
-    if (SPIFFS.exists("/config.json")) {
+    if (LittleFS.exists("/config.json")) {
       //file exists, reading and loading
       Serial.println("reading config file");
-      File configFile = SPIFFS.open("/config.json", "r");
+      File configFile = LittleFS.open("/config.json", "r");
       if (configFile) {
         Serial.println("opened config file");
         size_t size = configFile.size();
@@ -153,7 +153,7 @@ void setup() {
     // json["gateway"]     = WiFi.gatewayIP().toString();
     // json["subnet"]      = WiFi.subnetMask().toString();
 
-    File configFile = SPIFFS.open("/config.json", "w");
+    File configFile = LittleFS.open("/config.json", "w");
     if (!configFile) {
       Serial.println("failed to open config file for writing");
     }
