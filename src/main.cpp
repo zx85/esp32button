@@ -16,7 +16,7 @@ String header;
 // Auxiliar variables to store the current output state
 
 // New stuff to send things to the right server
-char api_url[100] = "https://home.mus-ic.co.uk/alexa/getSwitchToggle?secret=9896a166688128a03976f8032427b8e4&switch=1";
+char api_url[100] = "https://home.mus-ic.co.uk/alexa/getSwitchToggle?secret=9896a166688128a03976f8032427b8e4";
 char switch_id[2] = "0";
 //flag for saving data
 bool shouldSaveConfig = false;
@@ -177,7 +177,7 @@ void setup() {
 }
 
 void loop(){
-  String serverPath = "http://"+String(api_url)+"/get/"+String(switch_id);
+  String serverPath = String(api_url)+"&switch="+String(switch_id);
 //  Serial.println(serverPath);
   WiFiClient wifiClient;
   HTTPClient http;
