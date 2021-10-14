@@ -16,8 +16,8 @@ String header;
 // Auxiliar variables to store the current output state
 
 // New stuff to send things to the right server
-char api_url[100] = "https://home.mus-ic.co.uk/alexa/getSwitchToggle?secret=***REMOVED***";
-char switch_id[2] = "0";
+char api_url[80] = "www.mus-ic.co.uk/indicator.txt";
+char switch_id[2] = "1";
 //flag for saving data
 bool shouldSaveConfig = false;
 
@@ -115,7 +115,7 @@ void setup() {
   
   // set custom ip for portal
   //wifiManager.setAPConfig(IPAddress(10,0,1,1), IPAddress(10,0,1,1), IPAddress(255,255,255,0));
-  WiFiManagerParameter custom_api_url("api_url", "API server/business", api_url, 40);
+  WiFiManagerParameter custom_api_url("api_url", "API url", api_url, 80);
   wifiManager.addParameter(&custom_api_url);
   WiFiManagerParameter custom_switch_id("switch_id", "switch_id(1-9)", switch_id, 1);
   wifiManager.addParameter(&custom_switch_id);
@@ -177,24 +177,27 @@ void setup() {
 }
 
 void loop(){
-  String serverPath = String(api_url)+"&switch="+String(switch_id);
+  String serverPath = "http://"+String(api_url);
 //  Serial.println(serverPath);
-  WiFiClient wifiClient;
+  WiFiClient client;
   HTTPClient http;
-  http.begin(wifiClient,serverPath.c_str());
+  http.begin(client,serverPath.c_str());
   int httpResponseCode = http.GET();
   if (httpResponseCode>0) {
-   String payload = http.getString();
    Serial.print("HTTP Response code: ");
-   Serial.println(httpResponseCode);
-   Serial.println(payload);
-// we are in a good place
+   Serial.println(String(httpResponseCode)+"\n");
+// we are in the good place
+      String payload = http.getString();
+      Serial.print("Payload: ");
+      Serial.println(payload+"\n");
+// 
   }
   else {
    Serial.print("Error code: ");
-   Serial.println(httpResponseCode);
+   Serial.println(String(httpResponseCode)+"\n");
    }
       // Free resources
    http.end();
-  delay(5000);   
- }
+  Serial.print("Ten seconds until next run \n");
+   delay(10000);   
+  }
