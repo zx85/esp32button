@@ -15,6 +15,7 @@
 // Test button push and toggle
 // One more go at https ..?
 // https://github.com/maakbaas/esp8266-iot-framework
+// https://github.com/maakbaas/esp8266-iot-framework/issues/65
 
 // Variable to store the HTTP request
 String header;
