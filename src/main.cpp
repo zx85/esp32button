@@ -5,8 +5,9 @@
 #include <ESP8266WebServer.h>
 #include <ESP8266HTTPClient.h>
 #include <WiFiManager.h>       // https://github.com/tzapu/WiFiManager   
-#include <WiFiClient.h>
-
+#include <fetch.h>
+#include <timeSync.h>
+#include <updater.h>
 
 // TODO:
 // break this out into separate functions?
@@ -15,7 +16,6 @@
 // Test button push and toggle
 // One more go at https ..?
 // https://github.com/maakbaas/esp8266-iot-framework
-// https://github.com/maakbaas/esp8266-iot-framework/issues/65
 
 // Variable to store the HTTP request
 String header;
@@ -23,7 +23,8 @@ String header;
 // Auxiliar variables to store the current output state
 
 // New stuff to send things to the right server
-char api_url[80] = "www.mus-ic.co.uk/indicator.txt";
+char api_host[64] = "https://home.mus-ic.co.uk";
+char api_uri[80] = "alexa/getSwitchToggle?secret=9896a166688128a03976f8032427b8e4";
 char switch_id[2] = "1";
 //flag for saving data
 bool shouldSaveConfig = false;
@@ -33,12 +34,6 @@ void saveConfigCallback () {
   Serial.println("Should save config");
   shouldSaveConfig = true;
 }
-
-// Assign output variables to GPIO pins
-//const int red_light = 0;
-//const int yellow_light = 2;
-//String red_state = "0";
-//String yellow_state= "0";
 
 String getValue(String data, char separator, int index)
 {
@@ -82,7 +77,8 @@ void setupSpiffs(){
         if (json.success()) {
           Serial.println("\nparsed json");
 
-          strcpy(api_url, json["api_url"]);
+          strcpy(api_host, json["api_host"]);
+          strcpy(api_uri, json["api_uri"]);
           strcpy(switch_id, json["switch_id"]);
  
           // if(json["ip"]) {
@@ -107,6 +103,7 @@ void setupSpiffs(){
 }
 
 void setup() {
+  pinMode(LED_BUILTIN, OUTPUT);
   Serial.begin(115200);
 
   setupSpiffs();
@@ -122,8 +119,10 @@ void setup() {
   
   // set custom ip for portal
   //wifiManager.setAPConfig(IPAddress(10,0,1,1), IPAddress(10,0,1,1), IPAddress(255,255,255,0));
-  WiFiManagerParameter custom_api_url("api_url", "API url", api_url, 80);
-  wifiManager.addParameter(&custom_api_url);
+  WiFiManagerParameter custom_api_host("api_host", "API host", api_host, 64);
+  wifiManager.addParameter(&custom_api_host);
+  WiFiManagerParameter custom_api_uri("api_uri", "API uri", api_uri, 80);
+  wifiManager.addParameter(&custom_api_uri);
   WiFiManagerParameter custom_switch_id("switch_id", "switch_id(1-9)", switch_id, 1);
   wifiManager.addParameter(&custom_switch_id);
   // fetches ssid and pass from eeprom and tries to connect
@@ -143,9 +142,10 @@ void setup() {
   }
 
  Serial.println("wifi connected FTW");
-
+ timeSync.begin();
   //read updated parameters
-  strcpy(api_url, custom_api_url.getValue());
+  strcpy(api_host, custom_api_host.getValue());
+  strcpy(api_uri, custom_api_uri.getValue());
   strcpy(switch_id, custom_switch_id.getValue());
 
 //save the custom parameters to FS
@@ -153,7 +153,8 @@ void setup() {
     Serial.println("saving config");
     DynamicJsonBuffer jsonBuffer;
     JsonObject& json = jsonBuffer.createObject();
-    json["api_url"] = api_url;
+    json["api_host"] = api_host;
+    json["api_uri"] = api_uri;
     json["switch_id"]   = switch_id;
 
     // json["ip"]          = WiFi.localIP().toString();
@@ -176,35 +177,30 @@ void setup() {
   Serial.println(WiFi.localIP());
   Serial.println(WiFi.gatewayIP());
   Serial.println(WiFi.subnetMask());
-  Serial.println("api_url: ");
-  Serial.println(api_url);
+  Serial.println("api_host: ");
+  Serial.println(api_host);
+  Serial.println("api_uri: ");
+  Serial.println(api_uri);
   Serial.println("switch_id: ");
   Serial.println(switch_id);
   
 }
 
 void loop(){
-  String serverPath = "http://"+String(api_url);
+  digitalWrite(LED_BUILTIN, LOW);
+  String serverPath = String(api_host) + "/" + String(api_uri) + "&switch=" + String(switch_id);
 //  Serial.println(serverPath);
-  WiFiClient client;
-  HTTPClient http;
-  http.begin(client,serverPath.c_str());
-  int httpResponseCode = http.GET();
-  if (httpResponseCode>0) {
-   Serial.print("HTTP Response code: ");
-   Serial.println(String(httpResponseCode)+"\n");
-// we are in the good place
-      String payload = http.getString();
-      Serial.print("Payload: ");
-      Serial.println(payload+"\n");
-// 
-  }
-  else {
-   Serial.print("Error code: ");
-   Serial.println(String(httpResponseCode)+"\n");
-   }
-      // Free resources
-   http.end();
+  Serial.println(serverPath.c_str());
+  fetch.GET(serverPath.c_str());  
+  while (fetch.busy())
+{
+    if (fetch.available())
+    {
+        Serial.println(fetch.read());
+    }
+}  
+  fetch.clean();
   Serial.print("Ten seconds until next run \n");
+   digitalWrite(LED_BUILTIN, HIGH);
    delay(10000);   
   }
