@@ -24,7 +24,7 @@ String header;
 
 // New stuff to send things to the right server
 char api_host[64] = "https://home.mus-ic.co.uk";
-char api_uri[80] = "alexa/getSwitchToggle?secret=9896a166688128a03976f8032427b8e4";
+char api_uri[64] = "alexa/getSwitchToggle?secret=9896a166688128a03976f8032427b8e4";
 char switch_id[2] = "1";
 //flag for saving data
 bool shouldSaveConfig = false;
@@ -103,7 +103,6 @@ void setupSpiffs(){
 }
 
 void setup() {
-  pinMode(LED_BUILTIN, OUTPUT);
   Serial.begin(115200);
 
   setupSpiffs();
@@ -121,7 +120,7 @@ void setup() {
   //wifiManager.setAPConfig(IPAddress(10,0,1,1), IPAddress(10,0,1,1), IPAddress(255,255,255,0));
   WiFiManagerParameter custom_api_host("api_host", "API host", api_host, 64);
   wifiManager.addParameter(&custom_api_host);
-  WiFiManagerParameter custom_api_uri("api_uri", "API uri", api_uri, 80);
+  WiFiManagerParameter custom_api_uri("api_uri", "API uri", api_uri, 64);
   wifiManager.addParameter(&custom_api_uri);
   WiFiManagerParameter custom_switch_id("switch_id", "switch_id(1-9)", switch_id, 1);
   wifiManager.addParameter(&custom_switch_id);
@@ -183,14 +182,11 @@ void setup() {
   Serial.println(api_uri);
   Serial.println("switch_id: ");
   Serial.println(switch_id);
-  
-}
-
-void loop(){
-  digitalWrite(LED_BUILTIN, LOW);
+// Only do it once before deep sleep
   String serverPath = String(api_host) + "/" + String(api_uri) + "&switch=" + String(switch_id);
 //  Serial.println(serverPath);
   Serial.println(serverPath.c_str());
+  delay (1000);
   fetch.GET(serverPath.c_str());  
   while (fetch.busy())
 {
@@ -200,7 +196,10 @@ void loop(){
     }
 }  
   fetch.clean();
-  Serial.print("Ten seconds until next run \n");
-   digitalWrite(LED_BUILTIN, HIGH);
-   delay(10000);   
+Serial.println("Time for deep sleep");
+ESP.deepSleep(0);
+}
+
+void loop(){
+
   }
