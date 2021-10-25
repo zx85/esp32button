@@ -1,10 +1,8 @@
-#include <LittleFS.h>
+#include <LITTLEFS.h>
 #include <ArduinoJson.h> // https://github.com/bblanchon/ArduinoJson - needs to be v5 not v6
-#include <DNSServer.h>
 #include <WiFiManager.h>       // https://github.com/tzapu/WiFiManager   
-//#include <fetch.h>
-//#include <timeSync.h>
-//#include <updater.h>
+
+#define ONBOARD_LED  2
 
 // TODO:
 // break this out into separate functions?
@@ -55,12 +53,12 @@ void setupSpiffs(){
   //read configuration from FS json
   Serial.println("mounting FS...");
 
-  if (LittleFS.begin()) {
+  if (LITTLEFS.begin()) {
     Serial.println("mounted file system");
-    if (LittleFS.exists("/config.json")) {
+    if (LITTLEFS.exists("/config.json")) {
       //file exists, reading and loading
       Serial.println("reading config file");
-      File configFile = LittleFS.open("/config.json", "r");
+      File configFile = LITTLEFS.open("/config.json", "r");
       if (configFile) {
         Serial.println("opened config file");
         size_t size = configFile.size();
@@ -101,7 +99,8 @@ void setupSpiffs(){
 
 void setup() {
   Serial.begin(115200);
-
+  pinMode(ONBOARD_LED,OUTPUT);
+  digitalWrite(ONBOARD_LED,LOW);
   setupSpiffs();
 
   // WiFiManager
@@ -138,7 +137,7 @@ void setup() {
   }
 
  Serial.println("wifi connected FTW");
- timeSync.begin();
+ //timeSync.begin();
   //read updated parameters
   strcpy(api_host, custom_api_host.getValue());
   strcpy(api_uri, custom_api_uri.getValue());
@@ -157,7 +156,7 @@ void setup() {
     // json["gateway"]     = WiFi.gatewayIP().toString();
     // json["subnet"]      = WiFi.subnetMask().toString();
 
-    File configFile = LittleFS.open("/config.json", "w");
+    File configFile = LITTLEFS.open("/config.json", "w");
     if (!configFile) {
       Serial.println("failed to open config file for writing");
     }
@@ -183,6 +182,7 @@ void setup() {
   String serverPath = String(api_host) + "/" + String(api_uri) + "&switch=" + String(switch_id);
 //  Serial.println(serverPath);
   Serial.println(serverPath.c_str());
+  digitalWrite(ONBOARD_LED,HIGH);
   delay (1000);
 //  fetch.GET(serverPath.c_str());  
 //  while (fetch.busy())
