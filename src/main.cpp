@@ -1,13 +1,10 @@
 #include <LittleFS.h>
 #include <ArduinoJson.h> // https://github.com/bblanchon/ArduinoJson - needs to be v5 not v6
-#include <ESP8266WiFi.h>
 #include <DNSServer.h>
-#include <ESP8266WebServer.h>
-#include <ESP8266HTTPClient.h>
 #include <WiFiManager.h>       // https://github.com/tzapu/WiFiManager   
-#include <fetch.h>
-#include <timeSync.h>
-#include <updater.h>
+//#include <fetch.h>
+//#include <timeSync.h>
+//#include <updater.h>
 
 // TODO:
 // break this out into separate functions?
@@ -187,15 +184,15 @@ void setup() {
 //  Serial.println(serverPath);
   Serial.println(serverPath.c_str());
   delay (1000);
-  fetch.GET(serverPath.c_str());  
-  while (fetch.busy())
-{
-    if (fetch.available())
-    {
-        Serial.println(fetch.read());
-    }
-}  
-  fetch.clean();
+//  fetch.GET(serverPath.c_str());  
+//  while (fetch.busy())
+//{
+//    if (fetch.available())
+//    {
+//        Serial.println(fetch.read());
+//    }
+//}  
+//  fetch.clean();
 Serial.println("Time for deep sleep");
 ESP.deepSleep(0);
 }
