@@ -1,7 +1,7 @@
 #include <LITTLEFS.h>
 #include <ArduinoJson.h> // https://github.com/bblanchon/ArduinoJson - needs to be v5 not v6
 #include <WiFiManager.h>       // https://github.com/tzapu/WiFiManager   
-
+#include <WiFiClientSecure.h>
 #define ONBOARD_LED  2
 
 // TODO:
@@ -12,14 +12,14 @@
 // One more go at https ..?
 // https://github.com/maakbaas/esp8266-iot-framework
 
-// Variable to store the HTTP request
-String header;
+// Variable to store the HTTP gubbins
+int    HTTP_PORT   = 443;
+String HTTP_METHOD = "GET"; // or "POST"
 
-// Auxiliar variables to store the current output state
 
 // New stuff to send things to the right server
 char api_host[64] = "https://home.mus-ic.co.uk";
-char api_uri[64] = "alexa/getSwitchToggle?secret=9896a166688128a03976f8032427b8e4";
+char api_uri[64] = "alexa/getSwitchToggle?secret=xxx";
 char switch_id[2] = "1";
 //flag for saving data
 bool shouldSaveConfig = false;
@@ -183,7 +183,37 @@ void setup() {
 //  Serial.println(serverPath);
   Serial.println(serverPath.c_str());
   digitalWrite(ONBOARD_LED,HIGH);
-  delay (1000);
+
+// Actually try to do something for a bit
+  WiFiClientSecure client;
+  client.setInsecure();
+if (client.connect(api_host,HTTP_PORT)) {
+  Serial.println("Heavens above https has connected then");  
+}
+else {  
+  Serial.println("No https fun to be had here...");  
+}
+// send HTTP request header
+client.println(HTTP_METHOD + " /" + api_uri + "&switch=" + switch_id + " HTTP/1.1");
+client.println("Host: " + String(api_host));
+client.println("Connection: close");
+client.println(); // end HTTP request header
+
+while(client.available())
+{
+  // read an incoming byte from the server and print them to serial monitor:
+  char c = client.read();
+  Serial.print(c);
+}
+
+if(!client.connected())
+{
+  // if the server's disconnected, stop the client:
+  Serial.println("disconnected");
+  client.stop();
+}
+
+  delay (10000);
 //  fetch.GET(serverPath.c_str());  
 //  while (fetch.busy())
 //{
