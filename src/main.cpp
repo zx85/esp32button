@@ -19,7 +19,7 @@ String HTTP_METHOD = "GET"; // or "POST"
 
 // New stuff to send things to the right server
 char api_host[64] = "https://home.mus-ic.co.uk";
-char api_uri[64] = "alexa/getSwitchToggle?secret=xxx";
+char api_uri[64] = "alexa/getSwitchToggle?secret=SECRET_GOES_HERE";
 char switch_id[2] = "1";
 //flag for saving data
 bool shouldSaveConfig = false;
