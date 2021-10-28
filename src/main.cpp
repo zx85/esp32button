@@ -1,7 +1,11 @@
 #include <LITTLEFS.h>
 #include <ArduinoJson.h> // https://github.com/bblanchon/ArduinoJson - needs to be v5 not v6
 #include <WiFiManager.h>       // https://github.com/tzapu/WiFiManager   
+<<<<<<< HEAD
 #include <HTTPClient.h>
+=======
+
+>>>>>>> 1cef74fc61537f202e6792a0622f55d282bdd860
 #define ONBOARD_LED  2
 
 // TODO:
@@ -9,6 +13,7 @@
 // Sort out deep sleep
 // https://www.youtube.com/watch?v=n_A_8Y4xNx8
 // Test button push and toggle
+<<<<<<< HEAD
 // Giving up on https - sticking with http on the local network..
 // TODO: The variables don't seem to be sticking
 //       Need to pull a pin high to stop it waking up (probably)
@@ -17,6 +22,19 @@
 // New stuff to send things to the right server
 char api_host[64] = "http://192.168.75.4";
 char api_uri[64] = "api/getSwitchToggle?secret=SECRET_GOES_HERE";
+=======
+// One more go at https ..?
+// https://github.com/maakbaas/esp8266-iot-framework
+
+// Variable to store the HTTP request
+String header;
+
+// Auxiliar variables to store the current output state
+
+// New stuff to send things to the right server
+char api_host[64] = "https://home.mus-ic.co.uk";
+char api_uri[64] = "alexa/getSwitchToggle?secret=SECRET_GOES_HERE";
+>>>>>>> 1cef74fc61537f202e6792a0622f55d282bdd860
 char switch_id[2] = "1";
 //flag for saving data
 bool shouldSaveConfig = false;
@@ -180,6 +198,7 @@ void setup() {
 //  Serial.println(serverPath);
   Serial.println(serverPath.c_str());
   digitalWrite(ONBOARD_LED,HIGH);
+<<<<<<< HEAD
 
 // Actually try to do something for a bit
   HTTPClient http;
@@ -201,6 +220,9 @@ void setup() {
       // Free resources
       http.end();
   delay (10000);
+=======
+  delay (1000);
+>>>>>>> 1cef74fc61537f202e6792a0622f55d282bdd860
 //  fetch.GET(serverPath.c_str());  
 //  while (fetch.busy())
 //{
@@ -216,4 +238,8 @@ ESP.deepSleep(0);
 
 void loop(){
 
+<<<<<<< HEAD
   }
+=======
+  }
+>>>>>>> 1cef74fc61537f202e6792a0622f55d282bdd860
