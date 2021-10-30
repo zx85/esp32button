@@ -2,7 +2,7 @@
 #include <ArduinoJson.h> // https://github.com/bblanchon/ArduinoJson - needs to be v5 not v6
 #include <WiFiManager.h>       // https://github.com/tzapu/WiFiManager   
 #include <HTTPClient.h>
-#define ONBOARD_LED  2
+#define FORMAT_LITTLEFS_IF_FAILED true
 
 // TODO:
 // Giving up on https - sticking with http on the local network..
@@ -18,8 +18,13 @@
 char api_host[64] = "http://192.168.75.4";
 char api_uri[64] = "api/getSwitchToggle?secret=SECRET_GOES_HERE";
 char switch_id[2] = "1";
+char this_device_id[3] = "10";
 //flag for saving data
 bool shouldSaveConfig = false;
+
+// sort out the ADC business
+const int VOLTAGEPIN = 36;
+int VOLTAGEVALUE = 0;
 
 //callback notifying us of the need to save config
 void saveConfigCallback () {
@@ -45,8 +50,11 @@ String getValue(String data, char separator, int index)
 
 void setupSpiffs(){
   //clean FS, for testing
-  // SPIFFS.format();
-
+  // LITTLEFS.format();
+    if(!LITTLEFS.begin(FORMAT_LITTLEFS_IF_FAILED)){
+        Serial.println("LITTLEFS Mount Failed");
+        return;
+    }
   //read configuration from FS json
   Serial.println("mounting FS...");
 
@@ -72,6 +80,7 @@ void setupSpiffs(){
           strcpy(api_host, json["api_host"]);
           strcpy(api_uri, json["api_uri"]);
           strcpy(switch_id, json["switch_id"]);
+          strcpy(this_device_id, json["this_device_id"]);
  
           // if(json["ip"]) {
           //   Serial.println("setting custom ip from config");
@@ -96,8 +105,7 @@ void setupSpiffs(){
 
 void setup() {
   Serial.begin(115200);
-  pinMode(ONBOARD_LED,OUTPUT);
-  digitalWrite(ONBOARD_LED,LOW);
+  esp_sleep_enable_ext0_wakeup(GPIO_NUM_33,1); //1 = High, 0 = Low
   setupSpiffs();
 
   // WiFiManager
@@ -107,7 +115,7 @@ void setup() {
   wifiManager.setSaveConfigCallback(saveConfigCallback);
   
   // Uncomment and run it once, if you want to erase all the stored information
-  //wifiManager.resetSettings();
+  // wifiManager.resetSettings();
   
   // set custom ip for portal
   //wifiManager.setAPConfig(IPAddress(10,0,1,1), IPAddress(10,0,1,1), IPAddress(255,255,255,0));
@@ -117,6 +125,8 @@ void setup() {
   wifiManager.addParameter(&custom_api_uri);
   WiFiManagerParameter custom_switch_id("switch_id", "switch_id(1-9)", switch_id, 1);
   wifiManager.addParameter(&custom_switch_id);
+  WiFiManagerParameter custom_device_id("this_device_id", "this_device_id(1-99)", this_device_id, 2);
+  wifiManager.addParameter(&custom_device_id);
   // fetches ssid and pass from eeprom and tries to connect
   // if it does not connect it starts an access point with the specified name
   // here  "AutoConnectAP"
@@ -139,6 +149,7 @@ void setup() {
   strcpy(api_host, custom_api_host.getValue());
   strcpy(api_uri, custom_api_uri.getValue());
   strcpy(switch_id, custom_switch_id.getValue());
+  strcpy(this_device_id, custom_device_id.getValue());
 
 //save the custom parameters to FS
   if (shouldSaveConfig) {
@@ -148,6 +159,7 @@ void setup() {
     json["api_host"] = api_host;
     json["api_uri"] = api_uri;
     json["switch_id"]   = switch_id;
+    json["this_device_id"]   = this_device_id;
 
     // json["ip"]          = WiFi.localIP().toString();
     // json["gateway"]     = WiFi.gatewayIP().toString();
@@ -175,11 +187,15 @@ void setup() {
   Serial.println(api_uri);
   Serial.println("switch_id: ");
   Serial.println(switch_id);
+   Serial.println("this_device_id: ");
+  Serial.println(this_device_id);
+// get the value from the pin
+VOLTAGEVALUE = analogRead(VOLTAGEPIN);
+
 // Only do it once before deep sleep
-  String serverPath = String(api_host) + "/" + String(api_uri) + "&switch=" + String(switch_id);
+  String serverPath = String(api_host) + "/" + String(api_uri) + "&switch=" + String(switch_id) + "&this_device_id=" + String(this_device_id) + "&voltage=" + String(VOLTAGEVALUE);
 //  Serial.println(serverPath);
   Serial.println(serverPath.c_str());
-  digitalWrite(ONBOARD_LED,HIGH);
 
 // Actually try to do something for a bit
   HTTPClient http;
@@ -200,7 +216,7 @@ void setup() {
       }
       // Free resources
       http.end();
-  delay (10000);
+  delay (500);
 //  fetch.GET(serverPath.c_str());  
 //  while (fetch.busy())
 //{
@@ -211,7 +227,7 @@ void setup() {
 //}  
 //  fetch.clean();
 Serial.println("Time for deep sleep");
-ESP.deepSleep(0);
+esp_deep_sleep_start();
 }
 
 void loop(){
