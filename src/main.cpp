@@ -2,6 +2,8 @@
 #include <ArduinoJson.h> // https://github.com/bblanchon/ArduinoJson - needs to be v5 not v6
 #include <WiFiManager.h>       // https://github.com/tzapu/WiFiManager   
 #include <HTTPClient.h>
+#include "driver/adc.h"
+#include <esp_bt.h>
 #define FORMAT_LITTLEFS_IF_FAILED true
 
 // TODO:
@@ -17,7 +19,7 @@
 // New stuff to send things to the right server
 char api_host[64] = "http://192.168.75.4";
 char api_uri[64] = "api/getSwitchToggle?secret=SECRET_GOES_HERE";
-char switch_id[2] = "1";
+char switch_id[2] = "2";
 char this_device_id[3] = "10";
 //flag for saving data
 bool shouldSaveConfig = false;
@@ -101,6 +103,21 @@ void setupSpiffs(){
     Serial.println("failed to mount FS");
   }
   //end read
+}
+
+void goToDeepSleep()
+{
+  Serial.println("Going to the deep sleep...");
+  WiFi.disconnect(true);
+  WiFi.mode(WIFI_OFF);
+  btStop();
+
+  adc_power_off();
+  esp_wifi_stop();
+  esp_bt_controller_disable();
+
+  // Go to sleep! Zzzz
+  esp_deep_sleep_start();
 }
 
 void setup() {
@@ -227,7 +244,7 @@ VOLTAGEVALUE = analogRead(VOLTAGEPIN);
 //}  
 //  fetch.clean();
 Serial.println("Time for deep sleep");
-esp_deep_sleep_start();
+goToDeepSleep();
 }
 
 void loop(){
